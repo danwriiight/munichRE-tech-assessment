@@ -171,6 +171,7 @@ stages:
 
       - deployment: DeployTest
         displayName: Deploy to Test
+        pool: Self-Hosted-Dan
         dependsOn: WhatIfTest
         condition: succeeded()
         environment:
@@ -248,6 +249,7 @@ stages:
 
       - deployment: DeployProd
         displayName: Deploy to Production
+        pool: Self-Hosted-Dan
         dependsOn: ApproveProdDeployment
         condition: succeeded()
         environment:
