@@ -1,21 +1,4 @@
-# munichRE-tech-assessment
-
-## TODO: Populate and remove this
-
-It should briefly cover:
-- What is included
-- Why you chose Bicep
-- How the Key Vault design is production-ready
-- How secrets are injected securely
-- How multi-environment deployment works
-- How the Azure DevOps pipeline is secured
-- How the Ansible playbook handles Linux and Windows
-- Assumptions, trade-offs, and enterprise improvements
-- Where AI was used and how you validated it
-
- Use short supporting markdown files in /docs for the deeper explanation. That makes it easier to review and feels closer to a real engineering handover.
-
-# Overview 
+# munichRE-tech-assessment - Overview 
 
 We are delivering a production-ready Azure Key Vault deployment built with Bicep, parameterized for dev/test/prod, secured via RBAC, soft delete, purge protection, and private endpoints, plus an Azure DevOps pipeline that validates, plans, and deploys safely, and an Ansible playbook that configures Linux and Windows web hosts while pulling secrets from Key Vault without hardcoding. 
 
@@ -26,6 +9,7 @@ The repository is structured to separate infrastructure, pipeline, and configura
 ```
 .
 ├─ README.md
+├─ image.png
 ├─ PATH
 ├─ ansible/
 │  ├─ README.md
@@ -45,12 +29,7 @@ The repository is structured to separate infrastructure, pipeline, and configura
 │     ├─ test.bicepparam
 │     └─ prod.bicepparam
 ├─ docs/
-│  ├─ ai-usage.md
-│  ├─ architecture.md
-│  ├─ assumptions.md
-│  ├─ pipeline-security.md
-│  ├─ security.md
-│  └─ tradeoffs.md
+│  └─ pipeline-security.md
 └─ pipelines/
    └─ azure-pipelines.yml
 ```
