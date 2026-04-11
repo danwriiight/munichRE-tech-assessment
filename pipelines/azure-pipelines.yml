@@ -78,7 +78,7 @@ stages:
     dependsOn: Validate
     condition: succeeded()
     variables:
-      - group: dev-deployment-vars
+      # - group: dev-deployment-vars
       - name: environment
         value: dev
       - name: resourceGroupName
@@ -156,7 +156,7 @@ stages:
     dependsOn: Dev
     condition: succeeded()
     variables:
-      - group: test-deployment-vars
+      #- group: test-deployment-vars
       - name: environment
         value: test
       - name: resourceGroupName
@@ -234,7 +234,7 @@ stages:
     dependsOn: Test
     condition: succeeded()
     variables:
-      - group: prod-deployment-vars
+      # - group: prod-deployment-vars
       - name: environment
         value: prod
       - name: resourceGroupName
