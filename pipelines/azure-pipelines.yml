@@ -98,7 +98,6 @@ stages:
           - task: AzureCLI@2
             displayName: Build and What-If - Dev
             inputs:
-              # azureSubscription: $(serviceConnection)
               azureSubscription: dev-conn
               scriptType: bash
               scriptLocation: inlineScript
@@ -129,7 +128,7 @@ stages:
                 - task: AzureCLI@2
                   displayName: Build Bicep Template
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: dev-conn
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
@@ -139,7 +138,7 @@ stages:
                 - task: AzureCLI@2
                   displayName: Deploy to Resource Group
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: dev-conn
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
@@ -162,8 +161,6 @@ stages:
         value: test
       - name: resourceGroupName
         value: munich-kv-test
-      - name: serviceConnection
-        value: test-con
       - name: parametersFile
         value: $(parametersPath)/test.bicepparam
     jobs:
@@ -177,7 +174,7 @@ stages:
           - task: AzureCLI@2
             displayName: Build and What-If - Test
             inputs:
-              azureSubscription: $(serviceConnection)
+              azureSubscription: test-con
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
@@ -207,7 +204,7 @@ stages:
                 - task: AzureCLI@2
                   displayName: Build Bicep Template
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: test-con
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
@@ -217,7 +214,7 @@ stages:
                 - task: AzureCLI@2
                   displayName: Deploy to Resource Group
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: test-con
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
@@ -240,8 +237,6 @@ stages:
         value: prod
       - name: resourceGroupName
         value: munich-kv-prod
-      - name: serviceConnection
-        value: prod-conn
       - name: parametersFile
         value: $(parametersPath)/prod.bicepparam
     jobs:
@@ -255,14 +250,14 @@ stages:
           - task: AzureCLI@2
             displayName: Build and What-If - Prod
             inputs:
-              azureSubscription: $(serviceConnection)
+              azureSubscription: prod-conn
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
                 set -e
                 
                 echo "Building Bicep template..."
-                az bicep build-params --file $(parametersFile) --outdir $(Build.ArtifactStagingDirectory)
+                az bicep build-params --file prod-conn --outdir $(Build.ArtifactStagingDirectory)
                 
                 echo "Running What-If analysis..."
                 az deployment group what-if \
@@ -297,7 +292,7 @@ stages:
                 - task: AzureCLI@2
                   displayName: Build Bicep Template
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: prod-conn
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
@@ -307,7 +302,7 @@ stages:
                 - task: AzureCLI@2
                   displayName: Deploy to Resource Group
                   inputs:
-                    azureSubscription: $(serviceConnection)
+                    azureSubscription: prod-conn
                     scriptType: bash
                     scriptLocation: inlineScript
                     inlineScript: |
