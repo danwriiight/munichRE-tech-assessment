@@ -83,8 +83,6 @@ stages:
         value: dev
       - name: resourceGroupName
         value: munich-kv-dev
-      - name: serviceConnection
-        value: dev-conn
       - name: parametersFile
         value: $(parametersPath)/dev.bicepparam
     jobs:
@@ -108,7 +106,7 @@ stages:
                 az deployment group what-if `
                 --resource-group $(resourceGroupName) `
                 --template-file $(templateFile) `
-                --parameters "@$(parametersFile)" `
+                --parameters $(parametersFile) `
                 --output table
 
       - deployment: DeployDev
@@ -123,17 +121,6 @@ stages:
               steps:
                 - checkout: self
 
-                # - task: AzureCLI@2
-                #   displayName: Build Bicep Template
-                #   inputs:
-                #     azureSubscription: dev-conn
-                #     scriptType: ps
-                #     scriptLocation: inlineScript
-                #     inlineScript: |
-                #       $ErrorActionPreference = 'Stop'
-                #       Write-Host "Building Bicep template..."
-                #       az bicep build-params --file $(parametersFile) --outdir $(Pipeline.Workspace)
-
                 - task: AzureCLI@2
                   displayName: Deploy to Resource Group
                   inputs:
@@ -146,7 +133,7 @@ stages:
                       az deployment group create `
                       --resource-group $(resourceGroupName) `
                       --template-file $(templateFile) `
-                      --parameters "@$(parametersFile)" `
+                      --parameters $(parametersFile) `
                       --name "bicep-deployment-$(Build.BuildId)" `
                       --output table
 
@@ -177,16 +164,9 @@ stages:
               scriptType: ps
               scriptLocation: inlineScript
               inlineScript: |
-                set -e
-                
-                echo "Building Bicep template..."
-                az bicep build-params --file $(parametersFile) --outdir $(Build.ArtifactStagingDirectory)
-                
-                echo "Running What-If analysis..."
-                az deployment group what-if \
-                  --resource-group $(resourceGroupName) \
-                  --template-file $(Build.ArtifactStagingDirectory)/test.json \
-                  --output table
+                $ErrorActionPreference = 'Stop'
+                Write-Host "Running What-If analysis..."
+                az deployment group what-if --resource-group $(resourceGroupName) --template-file $(templateFile) --parameters $(parametersFile) --output table
 
       - deployment: DeployTest
         displayName: Deploy to Test
@@ -207,7 +187,8 @@ stages:
                     scriptType: ps
                     scriptLocation: inlineScript
                     inlineScript: |
-                      set -e
+                      $ErrorActionPreference = 'Stop'
+                      Write-Host "Building Bicep template..."
                       az bicep build-params --file $(parametersFile) --outdir $(Pipeline.Workspace)
 
                 - task: AzureCLI@2
@@ -217,14 +198,9 @@ stages:
                     scriptType: ps
                     scriptLocation: inlineScript
                     inlineScript: |
-                      set -e
-                      
-                      echo "Deploying Bicep template to $(resourceGroupName)..."
-                      az deployment group create \
-                        --resource-group $(resourceGroupName) \
-                        --template-file $(Pipeline.Workspace)/test.json \
-                        --name "bicep-deployment-$(Build.BuildId)" \
-                        --output table
+                      $ErrorActionPreference = 'Stop'
+                      Write-Host "Deploying Bicep template to $(resourceGroupName)..."
+                      az deployment group create --resource-group $(resourceGroupName) --template-file $(templateFile) --parameters $(parametersFile) --name "bicep-deployment-$(Build.BuildId)" --output table
 
   - stage: Prod
     displayName: Deploy to Production
@@ -253,16 +229,9 @@ stages:
               scriptType: ps
               scriptLocation: inlineScript
               inlineScript: |
-                set -e
-                
-                echo "Building Bicep template..."
-                az bicep build-params --file $(parametersFile) --outdir $(Build.ArtifactStagingDirectory)
-                
-                echo "Running What-If analysis..."
-                az deployment group what-if \
-                  --resource-group $(resourceGroupName) \
-                  --template-file $(Build.ArtifactStagingDirectory)/prod.json \
-                  --output table
+                $ErrorActionPreference = 'Stop'
+                Write-Host "Running What-If analysis..."
+                az deployment group what-if --resource-group $(resourceGroupName) --template-file $(templateFile) --parameters $(parametersFile) --output table
 
       - job: ApproveProdDeployment
         displayName: Approval Gate - Production Deployment
@@ -295,7 +264,8 @@ stages:
                     scriptType: ps
                     scriptLocation: inlineScript
                     inlineScript: |
-                      set -e
+                      $ErrorActionPreference = 'Stop'
+                      Write-Host "Building Bicep template..."
                       az bicep build-params --file $(parametersFile) --outdir $(Pipeline.Workspace)
 
                 - task: AzureCLI@2
@@ -305,11 +275,6 @@ stages:
                     scriptType: ps
                     scriptLocation: inlineScript
                     inlineScript: |
-                      set -e
-                      
-                      echo "Deploying Bicep template to $(resourceGroupName)..."
-                      az deployment group create \
-                        --resource-group $(resourceGroupName) \
-                        --template-file $(Pipeline.Workspace)/prod.json \
-                        --name "bicep-deployment-$(Build.BuildId)" \
-                        --output table
+                      $ErrorActionPreference = 'Stop'
+                      Write-Host "Deploying Bicep template to $(resourceGroupName)..."
+                      az deployment group create --resource-group $(resourceGroupName) --template-file $(templateFile) --parameters $(parametersFile) --name "bicep-deployment-$(Build.BuildId)" --output table
