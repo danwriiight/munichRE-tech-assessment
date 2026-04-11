@@ -1,0 +1,320 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - bicep/**
+      - pipelines/azure-pipelines.yml
+
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - bicep/**
+
+variables:
+  bicepPath: $(Build.SourcesDirectory)/bicep
+  parametersPath: $(Build.SourcesDirectory)/bicep/parameters
+  templateFile: $(bicepPath)/main.bicep
+
+stages:
+  - stage: Validate
+    displayName: Validate and Lint
+    jobs:
+      - job: ValidateBicep
+        displayName: Validate Bicep Templates
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - checkout: self
+            fetchDepth: 0
+
+          - task: AzureCLI@2
+            displayName: Install Bicep CLI
+            inputs:
+              azureSubscription: dev-conn  # Use any service connection for CLI setup
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                az bicep upgrade
+                az bicep version
+
+          - task: AzureCLI@2
+            displayName: Lint Bicep Files
+            inputs:
+              azureSubscription: dev-conn
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -e
+                echo "Linting main.bicep..."
+                az bicep lint --file $(templateFile)
+                
+                echo "Linting modules..."
+                for moduleFile in $(bicepPath)/modules/*.bicep; do
+                  echo "Linting $moduleFile..."
+                  az bicep lint --file "$moduleFile"
+                done
+
+          - task: AzureCLI@2
+            displayName: Validate Bicep Parameters
+            inputs:
+              azureSubscription: dev-conn
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -e
+                echo "Validating bicepparam files..."
+                for paramFile in $(parametersPath)/*.bicepparam; do
+                  echo "Validating $paramFile..."
+                  az bicep build-params --file "$paramFile" --outdir /tmp/bicep-validation
+                done
+
+  - stage: Dev
+    displayName: Deploy to Dev
+    dependsOn: Validate
+    condition: succeeded()
+    variables:
+      - group: dev-deployment-vars
+      - name: environment
+        value: dev
+      - name: resourceGroupName
+        value: mre-dev-rg
+      - name: serviceConnection
+        value: dev-conn
+      - name: parametersFile
+        value: $(parametersPath)/dev.bicepparam
+    jobs:
+      - job: WhatIfDev
+        displayName: What-If Analysis - Dev
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            displayName: Build and What-If - Dev
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -e
+                
+                echo "Building Bicep template..."
+                az bicep build-params --file $(parametersFile) --outdir $(Build.ArtifactStagingDirectory)
+                
+                echo "Running What-If analysis..."
+                az deployment group what-if \
+                  --resource-group $(resourceGroupName) \
+                  --template-file $(Build.ArtifactStagingDirectory)/dev.json \
+                  --output table
+
+      - deployment: DeployDev
+        displayName: Deploy to Dev
+        dependsOn: WhatIfDev
+        condition: succeeded()
+        environment: 
+          name: dev
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  displayName: Build Bicep Template
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -e
+                      az bicep build-params --file $(parametersFile) --outdir $(Pipeline.Workspace)
+
+                - task: AzureCLI@2
+                  displayName: Deploy to Resource Group
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -e
+                      
+                      echo "Deploying Bicep template to $(resourceGroupName)..."
+                      az deployment group create \
+                        --resource-group $(resourceGroupName) \
+                        --template-file $(Pipeline.Workspace)/dev.json \
+                        --name "bicep-deployment-$(Build.BuildId)" \
+                        --output table
+
+  - stage: Test
+    displayName: Deploy to Test
+    dependsOn: Dev
+    condition: succeeded()
+    variables:
+      - group: test-deployment-vars
+      - name: environment
+        value: test
+      - name: resourceGroupName
+        value: mre-test-rg
+      - name: serviceConnection
+        value: test-conn
+      - name: parametersFile
+        value: $(parametersPath)/test.bicepparam
+    jobs:
+      - job: WhatIfTest
+        displayName: What-If Analysis - Test
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            displayName: Build and What-If - Test
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -e
+                
+                echo "Building Bicep template..."
+                az bicep build-params --file $(parametersFile) --outdir $(Build.ArtifactStagingDirectory)
+                
+                echo "Running What-If analysis..."
+                az deployment group what-if \
+                  --resource-group $(resourceGroupName) \
+                  --template-file $(Build.ArtifactStagingDirectory)/test.json \
+                  --output table
+
+      - deployment: DeployTest
+        displayName: Deploy to Test
+        dependsOn: WhatIfTest
+        condition: succeeded()
+        environment:
+          name: test
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  displayName: Build Bicep Template
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -e
+                      az bicep build-params --file $(parametersFile) --outdir $(Pipeline.Workspace)
+
+                - task: AzureCLI@2
+                  displayName: Deploy to Resource Group
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -e
+                      
+                      echo "Deploying Bicep template to $(resourceGroupName)..."
+                      az deployment group create \
+                        --resource-group $(resourceGroupName) \
+                        --template-file $(Pipeline.Workspace)/test.json \
+                        --name "bicep-deployment-$(Build.BuildId)" \
+                        --output table
+
+  - stage: Prod
+    displayName: Deploy to Production
+    dependsOn: Test
+    condition: succeeded()
+    variables:
+      - group: prod-deployment-vars
+      - name: environment
+        value: prod
+      - name: resourceGroupName
+        value: mre-prod-rg
+      - name: serviceConnection
+        value: prod-conn
+      - name: parametersFile
+        value: $(parametersPath)/prod.bicepparam
+    jobs:
+      - job: WhatIfProd
+        displayName: What-If Analysis - Prod
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            displayName: Build and What-If - Prod
+            inputs:
+              azureSubscription: $(serviceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -e
+                
+                echo "Building Bicep template..."
+                az bicep build-params --file $(parametersFile) --outdir $(Build.ArtifactStagingDirectory)
+                
+                echo "Running What-If analysis..."
+                az deployment group what-if \
+                  --resource-group $(resourceGroupName) \
+                  --template-file $(Build.ArtifactStagingDirectory)/prod.json \
+                  --output table
+
+      - job: ApproveProdDeployment
+        displayName: Approval Gate - Production Deployment
+        dependsOn: WhatIfProd
+        condition: succeeded()
+        pool: server
+        steps:
+          - task: ManualValidation@0
+            displayName: Manual Approval Required
+            inputs:
+              notifyUsers: 'admin@example.com'
+              instructions: 'Please review the What-If analysis in the previous stage and approve production deployment'
+
+      - deployment: DeployProd
+        displayName: Deploy to Production
+        dependsOn: ApproveProdDeployment
+        condition: succeeded()
+        environment:
+          name: prod
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  displayName: Build Bicep Template
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -e
+                      az bicep build-params --file $(parametersFile) --outdir $(Pipeline.Workspace)
+
+                - task: AzureCLI@2
+                  displayName: Deploy to Resource Group
+                  inputs:
+                    azureSubscription: $(serviceConnection)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -e
+                      
+                      echo "Deploying Bicep template to $(resourceGroupName)..."
+                      az deployment group create \
+                        --resource-group $(resourceGroupName) \
+                        --template-file $(Pipeline.Workspace)/prod.json \
+                        --name "bicep-deployment-$(Build.BuildId)" \
+                        --output table
