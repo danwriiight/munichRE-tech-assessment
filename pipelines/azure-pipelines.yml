@@ -49,15 +49,15 @@ stages:
               scriptType: ps
               scriptLocation: inlineScript
               inlineScript: |
-                set -e
-                echo "Linting main.bicep..."
+                $ErrorActionPreference = 'Stop'
+                Write-Host "Linting main.bicep..."
                 az bicep lint --file $(templateFile)
-                
-                echo "Linting modules..."
-                for moduleFile in $(bicepPath)/modules/*.bicep; do
-                  echo "Linting $moduleFile..."
-                  az bicep lint --file "$moduleFile"
-                done
+
+                Write-Host "Linting modules..."
+                Get-ChildItem "$(bicepPath)/modules" -Filter '*.bicep' | ForEach-Object {
+                  Write-Host "Linting $($_.FullName)..."
+                  az bicep lint --file "$($_.FullName)"
+                }
 
           - task: AzureCLI@2
             displayName: Validate Bicep Parameters
@@ -66,12 +66,12 @@ stages:
               scriptType: ps
               scriptLocation: inlineScript
               inlineScript: |
-                set -e
-                echo "Validating bicepparam files..."
-                for paramFile in $(parametersPath)/*.bicepparam; do
-                  echo "Validating $paramFile..."
-                  az bicep build-params --file "$paramFile" --outdir /tmp/bicep-validation
-                done
+                $ErrorActionPreference = 'Stop'
+                Write-Host "Validating bicepparam files..."
+                Get-ChildItem "$(parametersPath)" -Filter '*.bicepparam' | ForEach-Object {
+                  Write-Host "Validating $($_.FullName)..."
+                  az bicep build-params --file "$($_.FullName)" --outdir "$env:TEMP\bicep-validation"
+                }
 
   - stage: Dev
     displayName: Deploy to Dev
