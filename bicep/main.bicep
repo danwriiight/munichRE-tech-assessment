@@ -38,7 +38,7 @@ module keyVaultModule 'modules/keyvault.bicep' = {
     tenantId: tenantId
     skuName: 'standard'
     enableSoftDelete: true
-    softDeleteRetentionInDays: 90
+    softDeleteRetentionInDays: 30
     enablePurgeProtection: true
     enableRbacAuthorization: true
     publicNetworkAccess: 'Enabled'
