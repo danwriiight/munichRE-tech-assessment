@@ -162,7 +162,7 @@ stages:
       - name: resourceGroupName
         value: mre-test-rg
       - name: serviceConnection
-        value: test-conn
+        value: test-con
       - name: parametersFile
         value: $(parametersPath)/test.bicepparam
     jobs:
