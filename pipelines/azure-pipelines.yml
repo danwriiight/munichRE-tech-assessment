@@ -98,7 +98,8 @@ stages:
           - task: AzureCLI@2
             displayName: Build and What-If - Dev
             inputs:
-              azureSubscription: $(serviceConnection)
+              # azureSubscription: $(serviceConnection)
+              azureSubscription: dev-conn
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
