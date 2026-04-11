@@ -3,6 +3,7 @@
 ## Overview
 
 This pipeline implements secure Bicep template deployments using:
+
 - **Workload Identity Federation** (OpenID Connect) for authentication—no long-lived secrets stored
 - **Separate service connections** per environment with least privilege RBAC
 - **Validation & What-If analysis** before deployments
@@ -176,18 +177,21 @@ In Azure DevOps (Project Settings → Service Connections):
 Create three Azure DevOps variable groups:
 
 ### dev-deployment-vars
+
 ```
 # Optional: deployment-specific variables
 NOTIFICATION_EMAIL=dev-team@example.com
 ```
 
 ### test-deployment-vars
+
 ```
 # Optional: deployment-specific variables
 NOTIFICATION_EMAIL=test-team@example.com
 ```
 
 ### prod-deployment-vars
+
 ```
 # Optional: deployment-specific variables
 NOTIFICATION_EMAIL=admin@example.com
@@ -197,21 +201,25 @@ DEPLOYMENT_APPROVAL_TIMEOUT=24 # hours
 ## Deployment Flow
 
 ### 1. Validation Stage
+
 ```
 Lint main.bicep → Lint modules → Validate parameters
 ```
 
 ### 2. Dev Deployment
+
 ```
 What-If (shows changes) → [Automatic] → Deploy
 ```
 
 ### 3. Test Deployment (runs after Dev succeeds)
+
 ```
 What-If (shows changes) → [Automatic] → Deploy
 ```
 
 ### 4. Prod Deployment (runs after Test succeeds)
+
 ```
 What-If (shows changes) → [Manual Approval] → Deploy
 ```
@@ -221,18 +229,19 @@ What-If (shows changes) → [Manual Approval] → Deploy
 ### View Pipeline Logs
 
 In Azure DevOps, view stage/job logs to see:
+
 - Bicep lint output
 - What-If changes
 - Deployment status and errors
 
 ### Common Issues & Solutions
 
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| "Insufficient privileges" | Service principal lacks permissions | Verify role assignment scope |
-| "Invalid token" | OIDC configuration incorrect | Verify federated credential subject matches service connection name |
-| "Resource group not found" | Wrong resource group name | Update resource group name in stage variables |
-| "Bicep validation failed" | Template syntax error | Review lint output and fix template |
+| Issue                      | Cause                               | Solution                                                            |
+| -------------------------- | ----------------------------------- | ------------------------------------------------------------------- |
+| "Insufficient privileges"  | Service principal lacks permissions | Verify role assignment scope                                        |
+| "Invalid token"            | OIDC configuration incorrect        | Verify federated credential subject matches service connection name |
+| "Resource group not found" | Wrong resource group name           | Update resource group name in stage variables                       |
+| "Bicep validation failed"  | Template syntax error               | Review lint output and fix template                                 |
 
 ### Rollback Procedure
 
@@ -256,6 +265,7 @@ az resource delete --id /subscriptions/.../resourceGroups/.../providers/.../reso
 ## Production Hardening Recommendations
 
 1. **Custom RBAC Role for Prod**
+
    ```json
    {
      "Name": "Bicep Deployer - Production",

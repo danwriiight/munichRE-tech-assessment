@@ -17,22 +17,63 @@ It should briefly cover:
 
 # Overview 
 
-TODO:
-- [ ] One paragraph on the solution and what you are delivering.
+We are delivering a production-ready Azure Key Vault deployment built with Bicep, parameterized for dev/test/prod, secured via RBAC, soft delete, purge protection, and private endpoints, plus an Azure DevOps pipeline that validates, plans, and deploys safely, and an Ansible playbook that configures Linux and Windows web hosts while pulling secrets from Key Vault without hardcoding. 
+
+The repository is structured to separate infrastructure, pipeline, and configuration management concerns, with supporting docs that explain security, tradeoffs, and assumptions for a clean engineering handover.
 
 # Repository Structure
 
-TODO:
-- [ ] Add tree demonstrating repository structure
+```
+.
+├─ README.md
+├─ PATH
+├─ ansible/
+│  ├─ README.md
+│  ├─ playbook.yml
+│  ├─ group_vars/
+│  │  ├─ linux_web.yml
+│  │  └─ windows_web/
+│  │     └─ vault.yml
+│  └─ inventory/
+│     └─ hosts.ini
+├─ bicep/
+│  ├─ main.bicep
+│  ├─ modules/
+│  │  └─ keyvault.bicep
+│  └─ parameters/
+│     ├─ dev.bicepparam
+│     ├─ test.bicepparam
+│     └─ prod.bicepparam
+├─ docs/
+│  ├─ ai-usage.md
+│  ├─ architecture.md
+│  ├─ assumptions.md
+│  ├─ pipeline-security.md
+│  ├─ security.md
+│  └─ tradeoffs.md
+└─ pipelines/
+   └─ azure-pipelines.yml
+```
 
 # Task 1: Bicep Key Vault Solution 
 
-TODO:
-- [ ] Explain:
-  - [ ] Why you chose Bicep over Terraform
-  - [ ] How the Key Vault is configured for production readiness
-  - [ ] How secrets should be injected securely
-  - [ ] How dev/test/prod are separated
+Reasons for choosing Bicep:
+- Azure-first estate: My understanding from conversations with the team is that MunichRE is an Azure first estate
+- Developer Skillset: I (as the only developer working on this project) have more recently used Bicep than Terraform
+- Azure Managed State: No ecternal state file to manage
+
+Reasons we could've chosen Terraform:
+- Cloud-agnostic estate: Terraform works well for hybrid / multi-cloud estates or if we want to future proof against cloud migrations
+- Developer Skillset: If the team already have experience with HCL / if modules are already built in Terraform.
+
+Production Readiness is demonstrated through:
+- RBAC managed
+- Soft delete 
+- Purge protection
+- Deny Public Access & Private Endpoints
+- Explicit network rules (see `bicep/modules/keyvault.bicep` and `docs/security.md`). 
+- Secrets are injected at runtime using Key Vault references and workload identity in the pipeline/Ansible flow (no secrets in source; see `pipelines/azure-pipelines.yml` and `ansible/README.md`). 
+- Dev/test/prod are separated by environment‑specific parameter files in `bicep/parameters/` and the pipeline selects the right `.bicepparam` per stage (see `docs/architecture.md`).
 
 # Task 2: Azure DevOps pipeline
 

@@ -1,0 +1,26 @@
+- name: Install Apache on Linux
+  hosts: linux_web
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Install Apache and enable service
+      raw: sudo apt-get update -y && sudo apt-get install -y apache2 && sudo systemctl enable --now apache2
+
+- name: Install Apache on Windows
+  hosts: windows_web
+  tasks:
+    - name: Ensure Chocolatey is installed
+      win_chocolatey:
+        name: chocolatey
+        state: present
+
+    - name: Install Apache HTTPD
+      win_chocolatey:
+        name: apache-httpd
+        state: present
+
+    - name: Ensure Apache service is running
+      win_service:
+        name: Apache24
+        state: started
+        start_mode: auto
