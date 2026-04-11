@@ -36,7 +36,7 @@ stages:
             displayName: Install Bicep CLI
             inputs:
               azureSubscription: dev-conn  # Use any service connection for CLI setup
-              scriptType: bash
+              scriptType: ps
               scriptLocation: inlineScript
               inlineScript: |
                 az bicep upgrade
@@ -46,7 +46,7 @@ stages:
             displayName: Lint Bicep Files
             inputs:
               azureSubscription: dev-conn
-              scriptType: bash
+              scriptType: ps
               scriptLocation: inlineScript
               inlineScript: |
                 set -e
@@ -63,7 +63,7 @@ stages:
             displayName: Validate Bicep Parameters
             inputs:
               azureSubscription: dev-conn
-              scriptType: bash
+              scriptType: ps
               scriptLocation: inlineScript
               inlineScript: |
                 set -e
@@ -99,7 +99,7 @@ stages:
             displayName: Build and What-If - Dev
             inputs:
               azureSubscription: dev-conn
-              scriptType: bash
+              scriptType: ps
               scriptLocation: inlineScript
               inlineScript: |
                 set -e
@@ -129,7 +129,7 @@ stages:
                   displayName: Build Bicep Template
                   inputs:
                     azureSubscription: dev-conn
-                    scriptType: bash
+                    scriptType: ps
                     scriptLocation: inlineScript
                     inlineScript: |
                       set -e
@@ -139,7 +139,7 @@ stages:
                   displayName: Deploy to Resource Group
                   inputs:
                     azureSubscription: dev-conn
-                    scriptType: bash
+                    scriptType: ps
                     scriptLocation: inlineScript
                     inlineScript: |
                       set -e
@@ -175,7 +175,7 @@ stages:
             displayName: Build and What-If - Test
             inputs:
               azureSubscription: test-con
-              scriptType: bash
+              scriptType: ps
               scriptLocation: inlineScript
               inlineScript: |
                 set -e
@@ -205,7 +205,7 @@ stages:
                   displayName: Build Bicep Template
                   inputs:
                     azureSubscription: test-con
-                    scriptType: bash
+                    scriptType: ps
                     scriptLocation: inlineScript
                     inlineScript: |
                       set -e
@@ -215,7 +215,7 @@ stages:
                   displayName: Deploy to Resource Group
                   inputs:
                     azureSubscription: test-con
-                    scriptType: bash
+                    scriptType: ps
                     scriptLocation: inlineScript
                     inlineScript: |
                       set -e
@@ -251,7 +251,7 @@ stages:
             displayName: Build and What-If - Prod
             inputs:
               azureSubscription: prod-conn
-              scriptType: bash
+              scriptType: ps
               scriptLocation: inlineScript
               inlineScript: |
                 set -e
@@ -293,7 +293,7 @@ stages:
                   displayName: Build Bicep Template
                   inputs:
                     azureSubscription: prod-conn
-                    scriptType: bash
+                    scriptType: ps
                     scriptLocation: inlineScript
                     inlineScript: |
                       set -e
@@ -303,7 +303,7 @@ stages:
                   displayName: Deploy to Resource Group
                   inputs:
                     azureSubscription: prod-conn
-                    scriptType: bash
+                    scriptType: ps
                     scriptLocation: inlineScript
                     inlineScript: |
                       set -e
