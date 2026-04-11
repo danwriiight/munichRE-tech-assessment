@@ -82,7 +82,7 @@ stages:
       - name: environment
         value: dev
       - name: resourceGroupName
-        value: mre-dev-rg
+        value: munich-kv-dev
       - name: serviceConnection
         value: dev-conn
       - name: parametersFile
@@ -160,7 +160,7 @@ stages:
       - name: environment
         value: test
       - name: resourceGroupName
-        value: mre-test-rg
+        value: munich-kv-test
       - name: serviceConnection
         value: test-con
       - name: parametersFile
@@ -238,7 +238,7 @@ stages:
       - name: environment
         value: prod
       - name: resourceGroupName
-        value: mre-prod-rg
+        value: munich-kv-prod
       - name: serviceConnection
         value: prod-conn
       - name: parametersFile
