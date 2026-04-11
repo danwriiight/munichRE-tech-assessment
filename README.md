@@ -110,12 +110,17 @@ Further Enhancements:
 
 # Task 3: Ansible playbook
 
-## TODO: 
-- [ ] Explain:
-  - [ ] OS-specific handling
-  - [ ] Idempotency
-  - [ ] Credential handling
-  - [ ] CI/CD integration
+## Explanation
+- **OS-specific handling:** 
+    - The playbook splits Linux and Windows into separate plays targeting `linux_web` and `windows_web` inventory groups. 
+    - Linux uses `become: true` to run with elevated privileges and shell-level package/service commands
+    - Windows uses `win_chocolatey` and `win_service` to install and manage Apache. Chocolatey is required because Windows does not have a native package manager for Apache; the `apache-httpd` package is distributed via Chocolatey, which provides a consistent, automatable install/upgrade path.
+- **Idempotency:** The Windows tasks are idempotent because the modules enforce `state: present/started`. 
+- **Credential handling:** Windows credentials are kept in `ansible/group_vars/windows_web/vault.yml` and encrypted with Ansible Vault, and the playbook is run with `--ask-vault-pass`. Linux authentication should use SSH keys or agent forwarding rather than passwords.
+- **CI/CD integration:** Run `ansible-playbook` from a pipeline job on a self‑hosted agent with network access to the target hosts. Store the Vault password as a secret variable (or secure file) and pass it at runtime, and keep inventory and playbooks versioned so deployments are repeatable and auditable.
+
+Future Enhancements:
+- The Linux task uses a `raw` command (`apt-get ... && systemctl ...`), which is not idempotent and bypasses Ansible’s state model. For production, replace it with `apt`/`yum` and `service`/`systemd` modules so repeated runs produce no changes.
 
 # Security Considerations
 

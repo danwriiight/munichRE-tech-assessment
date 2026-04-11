@@ -25,9 +25,9 @@ Three separate service connections for dev/test/prod with federated identity.
 #### Prerequisites
 
 - Azure subscription(s) with appropriate resource groups created:
-  - `mre-dev-rg` (Development)
-  - `mre-test-rg` (Test)
-  - `mre-prod-rg` (Production)
+  - `munichre-kv-dev` (Development)
+  - `munichre-kv-test` (Test)
+  - `munichre-kv-prod` (Production)
 - Azure DevOps organization and project
 - Rights to create service connections and manage Azure role assignments
 
