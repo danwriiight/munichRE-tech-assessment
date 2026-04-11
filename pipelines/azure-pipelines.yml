@@ -110,6 +110,7 @@ stages:
                 --output table
 
       - deployment: DeployDev
+        pool: Self-Hosted-Dan
         displayName: Deploy to Dev
         dependsOn: WhatIfDev
         condition: succeeded()
