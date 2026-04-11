@@ -26,8 +26,8 @@ stages:
     jobs:
       - job: ValidateBicep
         displayName: Validate Bicep Templates
-        pool:
-          vmImage: ubuntu-latest
+        pool: Self-Hosted-Dan
+          # vmImage: ubuntu-latest
         steps:
           - checkout: self
             fetchDepth: 0
@@ -90,8 +90,8 @@ stages:
     jobs:
       - job: WhatIfDev
         displayName: What-If Analysis - Dev
-        pool:
-          vmImage: ubuntu-latest
+        pool: Self-Hosted-Dan
+          # vmImage: ubuntu-latest
         steps:
           - checkout: self
 
@@ -166,8 +166,8 @@ stages:
     jobs:
       - job: WhatIfTest
         displayName: What-If Analysis - Test
-        pool:
-          vmImage: ubuntu-latest
+        pool: Self-Hosted-Dan
+          # vmImage: ubuntu-latest
         steps:
           - checkout: self
 
@@ -242,8 +242,8 @@ stages:
     jobs:
       - job: WhatIfProd
         displayName: What-If Analysis - Prod
-        pool:
-          vmImage: ubuntu-latest
+        pool: Self-Hosted-Dan
+          # vmImage: ubuntu-latest
         steps:
           - checkout: self
 
@@ -257,7 +257,7 @@ stages:
                 set -e
                 
                 echo "Building Bicep template..."
-                az bicep build-params --file prod-conn --outdir $(Build.ArtifactStagingDirectory)
+                az bicep build-params --file $(parametersFile) --outdir $(Build.ArtifactStagingDirectory)
                 
                 echo "Running What-If analysis..."
                 az deployment group what-if \
