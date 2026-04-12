@@ -58,6 +58,9 @@ Production Readiness is demonstrated through:
 
 Planned Enhancements:
 - **Private Endpoints** Will enable fully private connectivity over the Azure backbone, removing reliance on public endpoints.
+- **Module versioning/pinning** Will improve reproducibility and change control as modules are reused or shared.
+- **Monitoring and alerting** Add diagnostic settings to Log Analytics and alerts for access failures, delete, or purge events.
+- **Azure Policy enforcement** Use policy to audit/deny non-compliant Key Vault settings (e.g., purge protection, public network access disabled).
 
 ## Secret Injection
 - As above, we use a **service principal with federated identity** (for Azure DevOps Pipelines)
